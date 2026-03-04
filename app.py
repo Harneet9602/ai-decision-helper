@@ -17,7 +17,7 @@ if not API_KEY:
 
 client = Groq(api_key=API_KEY)
 
-# --- System Prompt & Model Setup ---
+# --- System Prompt ---
 system_instruction = """
 You are a warm, excited, and expert decision-making assistant. You love helping people gain clarity!
 Keep your tone encouraging and conversational, but do not use too many emojis (maximum 1 or 2 per message).
@@ -28,7 +28,7 @@ Be concise and clear.
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- UI Components ---
+# --- UI ---
 st.title("⚖️ AI Decision Helper")
 st.markdown("Stuck on a choice? Tell me what you're deciding between, and we can talk it through!")
 
@@ -40,54 +40,54 @@ for msg in st.session_state.messages:
 # --- Chat Input ---
 if prompt := st.chat_input("What decision are you trying to make? Or ask a follow-up!"):
 
-    # Show user message
+    # Display user message
     with st.chat_message("user"):
         st.markdown(prompt)
 
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # FIRST message logic
+    # Determine if first message
     if len(st.session_state.messages) == 1:
 
-        gemini_prompt = f"""
-        The user needs help with the following decision: "{prompt}"
+        decision_prompt = f"""
+The user needs help with the following decision: "{prompt}"
 
-        Please analyze this decision and provide your response STRICTLY in the following Markdown format:
+Please analyze this decision and provide your response STRICTLY in the following Markdown format:
 
-        ### Pros of Option A
-        * [Pro 1]
-        * [Pro 2]
+### Pros of Option A
+* [Pro 1]
+* [Pro 2]
 
-        ### Pros of Option B
-        * [Pro 1]
-        * [Pro 2]
+### Pros of Option B
+* [Pro 1]
+* [Pro 2]
 
-        ### Key Factors to Consider
-        * [Factor 1]
-        * [Factor 2]
+### Key Factors to Consider
+* [Factor 1]
+* [Factor 2]
 
-        ### Recommendation
-        [State a clear, single recommendation]
+### Recommendation
+[State a clear, single recommendation]
 
-        ### Short Reasoning
-        [Briefly explain why based on the factors]
-        """
+### Short Reasoning
+[Briefly explain why based on the factors]
+"""
 
     else:
-        gemini_prompt = prompt
+        decision_prompt = prompt
 
-    # --- Send to Groq ---
+    # --- Call Groq API ---
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
 
             try:
 
                 completion = client.chat.completions.create(
-                    model="llama3-8b-8192",
+                    model="llama-3.1-8b-instant",
                     messages=[
                         {"role": "system", "content": system_instruction},
-                        {"role": "user", "content": gemini_prompt}
-                    ],
+                        {"role": "user", "content": decision_prompt}
+                    ]
                 )
 
                 response = completion.choices[0].message.content
